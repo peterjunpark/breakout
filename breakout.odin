@@ -61,26 +61,28 @@ main :: proc() {
 		}
 
 		// Game logic
-		previous_ball_pos := ball_pos
+		prev_ball_pos := ball_pos
 		ball_pos += ball_dir * BALL_SPEED * dt
 
-		if ball_pos.x + BALL_RADIUS > SCREEN_SIZE {
-			ball_pos.x = SCREEN_SIZE - BALL_RADIUS
-			ball_dir = linalg.normalize(linalg.reflect(ball_dir, rl.Vector2{-1, 0}))
-			ball_dir = reflect(ball_dir, {-1, 0})
-		}
-
-		if ball_pos.x - BALL_RADIUS < 0 {
-			ball_pos.x = BALL_RADIUS
-			ball_dir = reflect(ball_dir, {1, 0})
-		}
-
+		// If the ball hits the ceiling
 		if ball_pos.y - BALL_RADIUS < 0 {
 			ball_pos.y = BALL_RADIUS
 			ball_dir = reflect(ball_dir, {0, 1})
 		}
 
-		if ball_pos.y > SCREEN_SIZE + BALL_RADIUS * 6 {
+		// If the ball hits the left wall
+		if ball_pos.x - BALL_RADIUS < 0 {
+			ball_pos.x = BALL_RADIUS
+			ball_dir = reflect(ball_dir, {1, 0})
+		}
+
+		// If the ball hits the right wall
+		if ball_pos.x + BALL_RADIUS > SCREEN_SIZE {
+			ball_pos.x = SCREEN_SIZE - BALL_RADIUS
+			ball_dir = reflect(ball_dir, {-1, 0})
+		}
+
+		if ball_pos.y > SCREEN_SIZE + BALL_RADIUS * 5 {
 			restart()
 		}
 
@@ -102,27 +104,28 @@ main :: proc() {
 			collision_normal: rl.Vector2
 
 			// If the ball hits the top of the paddle
-			if previous_ball_pos.y < paddle_rect.y + paddle_rect.height {
+			if prev_ball_pos.y < paddle_rect.y + paddle_rect.height {
 				collision_normal += {0, -1}
 				ball_pos.y = paddle_rect.y - BALL_RADIUS
 			}
 
-			// If the ball hits the bottom of the paddle... unlikely
-			if previous_ball_pos.y > paddle_rect.y + paddle_rect.height {
+			// If the ball hits the bottom of the paddle
+			if prev_ball_pos.y > paddle_rect.y + paddle_rect.height {
 				collision_normal += {0, 1}
 				ball_pos.y = paddle_rect.y + paddle_rect.height + BALL_RADIUS
 			}
 
 			// If the ball hits the left side of the paddle
-			if previous_ball_pos.x < paddle_rect.x {
+			if prev_ball_pos.x < paddle_rect.x {
 				collision_normal += {-1, 0}
 			}
 
 			// If the ball hits the right side of the paddle
-			if previous_ball_pos.x > paddle_rect.x {
+			if prev_ball_pos.x > paddle_rect.x + paddle_rect.width {
 				collision_normal += {1, 0}
 			}
 
+			// Bounce
 			if collision_normal != 0 {
 				ball_dir = reflect(ball_dir, collision_normal)
 			}
