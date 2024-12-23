@@ -52,7 +52,7 @@ main :: proc() {
 
 		// Drawing stuff
 		rl.BeginDrawing()
-		rl.ClearBackground({150, 190, 220, 255})
+		rl.ClearBackground({25, 23, 36, 255})
 
 		camera := rl.Camera2D {
 			zoom = f32(rl.GetScreenHeight()) / SCREEN_SIZE,
@@ -62,8 +62,8 @@ main :: proc() {
 
 		paddle_rect := rl.Rectangle{paddle_pos_x, PADDLE_POS_Y, PADDLE_WIDTH, PADDLE_HEIGHT}
 
-		rl.DrawRectangleRec(paddle_rect, {50, 150, 69, 255})
-		rl.DrawCircleV(ball_pos, BALL_RADIUS, {222, 160, 88, 255})
+		rl.DrawRectangleRec(paddle_rect, {49, 116, 143, 255})
+		rl.DrawCircleV(ball_pos, BALL_RADIUS, {235, 111, 146, 255})
 		rl.EndMode2D()
 		rl.EndDrawing()
 	}
