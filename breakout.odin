@@ -20,7 +20,13 @@ BALL_START_Y :: 160
 ball_pos: rl.Vector2
 ball_dir: rl.Vector2
 
+reflect :: proc(dir, normal: rl.Vector2) -> rl.Vector2 {
+	new_dir := linalg.reflect(dir, linalg.normalize(normal))
+	return linalg.normalize(new_dir)
+}
+
 restart :: proc() {
+	game_started = false
 	paddle_pos_x = SCREEN_SIZE / 2 - PADDLE_WIDTH / 2
 	ball_pos = {SCREEN_SIZE / 2, BALL_START_Y}
 }
@@ -57,6 +63,27 @@ main :: proc() {
 		// Game logic
 		previous_ball_pos := ball_pos
 		ball_pos += ball_dir * BALL_SPEED * dt
+
+		if ball_pos.x + BALL_RADIUS > SCREEN_SIZE {
+			ball_pos.x = SCREEN_SIZE - BALL_RADIUS
+			ball_dir = linalg.normalize(linalg.reflect(ball_dir, rl.Vector2{-1, 0}))
+			ball_dir = reflect(ball_dir, {-1, 0})
+		}
+
+		if ball_pos.x - BALL_RADIUS < 0 {
+			ball_pos.x = BALL_RADIUS
+			ball_dir = reflect(ball_dir, {1, 0})
+		}
+
+		if ball_pos.y - BALL_RADIUS < 0 {
+			ball_pos.y = BALL_RADIUS
+			ball_dir = reflect(ball_dir, {0, 1})
+		}
+
+		if ball_pos.y > SCREEN_SIZE + BALL_RADIUS * 6 {
+			restart()
+		}
+
 		paddle_move_velocity: f32
 
 		if rl.IsKeyDown(.H) {
@@ -80,6 +107,12 @@ main :: proc() {
 				ball_pos.y = paddle_rect.y - BALL_RADIUS
 			}
 
+			// If the ball hits the bottom of the paddle... unlikely
+			if previous_ball_pos.y > paddle_rect.y + paddle_rect.height {
+				collision_normal += {0, 1}
+				ball_pos.y = paddle_rect.y + paddle_rect.height + BALL_RADIUS
+			}
+
 			// If the ball hits the left side of the paddle
 			if previous_ball_pos.x < paddle_rect.x {
 				collision_normal += {-1, 0}
@@ -90,16 +123,8 @@ main :: proc() {
 				collision_normal += {1, 0}
 			}
 
-			// If the ball hits the bottom of the paddle... unlikely
-			if previous_ball_pos.y > paddle_rect.y + paddle_rect.height {
-				collision_normal += {0, 1}
-				ball_pos.y = paddle_rect.y + paddle_rect.height + BALL_RADIUS
-			}
-
 			if collision_normal != 0 {
-				ball_dir = linalg.normalize(
-					linalg.reflect(ball_dir, linalg.normalize(collision_normal)),
-				)
+				ball_dir = reflect(ball_dir, collision_normal)
 			}
 		}
 
