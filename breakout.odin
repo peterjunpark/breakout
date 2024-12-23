@@ -20,6 +20,25 @@ BALL_START_Y :: 160
 ball_pos: rl.Vector2
 ball_dir: rl.Vector2
 
+BLOCK_WIDTH :: 28
+BLOCK_HEIGHT :: 10
+NUM_BLOCKS_X :: 10
+NUM_BLOCKS_Y :: 8
+Block_Color :: enum {
+	Rose,
+	Gold,
+	Iris,
+	Foam,
+}
+row_colors := [NUM_BLOCKS_Y]Block_Color{.Rose, .Rose, .Gold, .Gold, .Iris, .Iris, .Foam, .Foam}
+block_color_values := [Block_Color]rl.Color {
+	.Rose = {235, 188, 186, 255},
+	.Gold = {246, 193, 119, 255},
+	.Iris = {196, 167, 231, 255},
+	.Foam = {156, 207, 216, 255},
+}
+blocks: [NUM_BLOCKS_X][NUM_BLOCKS_Y]bool
+
 reflect :: proc(dir, normal: rl.Vector2) -> rl.Vector2 {
 	new_dir := linalg.reflect(dir, linalg.normalize(normal))
 	return linalg.normalize(new_dir)
@@ -29,6 +48,12 @@ restart :: proc() {
 	game_started = false
 	paddle_pos_x = SCREEN_SIZE / 2 - PADDLE_WIDTH / 2
 	ball_pos = {SCREEN_SIZE / 2, BALL_START_Y}
+
+	for x in 0 ..< NUM_BLOCKS_X {
+		for y in 0 ..< NUM_BLOCKS_Y {
+			blocks[x][y] = true
+		}
+	}
 }
 
 main :: proc() {
@@ -144,6 +169,32 @@ main :: proc() {
 		rl.DrawRectangleRec(paddle_rect, {49, 116, 143, 255})
 		// Draw ball.
 		rl.DrawCircleV(ball_pos, BALL_RADIUS, {235, 111, 146, 255})
+		// Draw blocks.
+		for x in 0 ..< NUM_BLOCKS_X {
+			for y in 0 ..< NUM_BLOCKS_Y {
+				if blocks[x][y] == false {
+					continue
+				}
+				block_rect := rl.Rectangle {
+					f32(20 + x * BLOCK_WIDTH),
+					f32(40 + y * BLOCK_HEIGHT),
+					BLOCK_WIDTH,
+					BLOCK_HEIGHT,
+				}
+				top_left := rl.Vector2{block_rect.x, block_rect.y}
+				top_right := rl.Vector2{block_rect.x + block_rect.width, block_rect.y}
+				bot_left := rl.Vector2{block_rect.x, block_rect.y + block_rect.height}
+				bot_right := rl.Vector2 {
+					block_rect.x + block_rect.width,
+					block_rect.y + block_rect.height,
+				}
+				rl.DrawRectangleRec(block_rect, block_color_values[row_colors[y]])
+				rl.DrawLineEx(top_left, top_right, 1, {144, 140, 170, 120})
+				rl.DrawLineEx(top_left, bot_left, 1, {144, 140, 170, 120})
+				rl.DrawLineEx(top_right, bot_right, 1, {110, 106, 134, 120})
+				rl.DrawLineEx(bot_left, bot_right, 1, {110, 106, 134, 120})
+			}
+		}
 
 		rl.EndMode2D()
 		rl.EndDrawing()
